@@ -1,8 +1,16 @@
 body {
-  background: whitesmoke;
+    background: whitesmoke;
+}
+.start-todo {
 }
 .todo-new {
-  width: 100%;
-  position: fixed;
-  bottom: 0;
+    width: 100%;
+    position: fixed;
+    bottom: -5px;
+}
+
+.todo-list {
+    margin-top: 57px;
+    width: 100%;
+   margin-bottom: 82px;
 }

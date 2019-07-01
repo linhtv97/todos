@@ -80,17 +80,18 @@ export default class App extends Component {
 
     state = {
         todos: [],
-        loading: true
+        loading: true,
+        url: "http://18.139.108.240/todos/"
     };
 
     async getTodos() {
         this.setState({loading: true});
-        const todos = await fetch('https://todos.sphinx-demo.com/todos').then(res => res.json());
+        const todos = await fetch(this.state.url).then(res => res.json());
         this.setState({todos: todos, loading: false});
     }
 
     async postTodo(newTodo) {
-        await fetch("https://todos.sphinx-demo.com/todos", {
+        await fetch(this.state.url, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -98,18 +99,28 @@ export default class App extends Component {
             body: JSON.stringify(newTodo)
         })
     }
+
     async deleteTodo(id) {
-        await fetch("https://todos.sphinx-demo.com/todos/" + id, {
+        await fetch(this.state.url + id, {
             method: "DELETE",
         });
         await this.getTodos();
     };
-    async updateTodo(id) {
-       await fetch("https://todos.sphinx-demo.com/todos/" + id, {
-            method: "PUT"
+
+    async updateTodo(todo) {
+        await fetch(this.state.url + todo.id, {
+            method: "PUT",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body:  JSON.stringify(
+                {
+                    done: todo.done
+                }
+            )
         });
-        await this.getTodos();
     }
+
     componentDidMount() {
         this.getTodos();
     }
@@ -124,14 +135,15 @@ export default class App extends Component {
         return todoDone;
     };
 
-    async checkTodoDone(id) {
+    async checkTodoDone(index) {
         let updateTodoDone = this.state.todos;
-        updateTodoDone[0].id = !updateTodoDone[0].id
-        await this.updateTodo(id);
+        updateTodoDone[index].done = !updateTodoDone[index].done;
+        await this.updateTodo(updateTodoDone[index]);
+        await this.getTodos();
     };
 
     async clearTodoDone() {
-          this.state.todos.forEach( async (todo) => {
+        this.state.todos.forEach(async (todo) => {
             if (todo.done === true) {
                 await this.deleteTodo(todo.id);
             }
@@ -148,11 +160,12 @@ export default class App extends Component {
         const todos = this.state.todos;
         return (
             <div className={"main"}>
-                <div className={'navbar navbar-dark bg-dark fixed-top'}>
+                <div className={'navbar navbar-dark bg-dark start-todo fixed-top start-todo'}>
                     <div className="container-fluid">
-                        <div className="navbar-brand">
+                        <div className="navbar-brand ">
                             <Start done={this.countToDoDone()} todoCount={todoCount}/>
                         </div>
+
                         <div className="navbar-right">
                             <button className={"btn btn-info btn-sm btn-clear"}
                                     onClick={() => this.clearTodoDone()}>Clear
@@ -164,10 +177,10 @@ export default class App extends Component {
                     {this.state.loading ? (
                         <div className={"flex"}><i className={'fa fa-3x fa-spin fa-spinner'}/></div>) : (
                         <ul className={'list-group'}>
-                            {todos.map((todo) => {
+                            {todos.map((todo, index) => {
                                     return (
                                         <li className={'list-group-item'} key={todo.id}>
-                                            <Todo todo={todo} onChangleTodo={() => this.checkTodoDone(todo.id)}/>
+                                            <Todo todo={todo} onChangleTodo={() => this.checkTodoDone(index)}/>
                                         </li>
                                     )
                                 }
@@ -175,7 +188,7 @@ export default class App extends Component {
                         </ul>
                     )}
                 </div>
-                <div className={'todo-new'}>
+                <div className={'todo-new form-group'}>
                     <NewTodoForm onAddNewTodo={(newTodo) => this.addNewTodo(newTodo)}/>
                 </div>
             </div>
